@@ -26,6 +26,10 @@ import (
 	conditions ast.TwoOpExprs
 	where *ast.WhereNode
 	having *ast.HavingNode
+	orders *ast.OrderNode
+	groups *ast.GroupNode
+	orderList []ast.Order
+	groupList []ast.Group
 }
 
 // operators
@@ -33,7 +37,7 @@ import (
 %token <operator> OPERATOR
 %token <logical> LOGICAL
 // keywords
-%token <string> SELECT STAR AS FROM WHERE GROUP ORDER HAVING LIMIT OFFSET
+%token <string> SELECT STAR AS FROM WHERE GROUP ORDER BY HAVING LIMIT OFFSET DESC ASC
 // identities
 %token <string> IDENT
 // constants
@@ -49,11 +53,15 @@ import (
 %type <expr> Expr Exprs Conditions Const
 %type <ident> Ident
 %type <selector> Selector
-%type <node> Field
+%type <node> Field Order Group
 %type <twoOpExpr> Condition
 %type <fields> FieldNode
 %type <from> FromNode
 %type <where> WhereNode
+%type <orderList> Orders
+%type <orders> OrderNode
+%type <groupList> Groups
+%type <groups> GroupNode
 %type <stmt> SelectStatement
 
 %%
@@ -240,7 +248,10 @@ Conditions:
 	}
 
 WhereNode:
-	WHERE Conditions
+	{
+		$$ = nil
+	}
+	| WHERE Conditions
 	{
 		node := &ast.WhereNode{
 			Conditions: $2,
@@ -248,6 +259,84 @@ WhereNode:
 		$$ = node
 	}
 
+Group:
+	Expr
+	{
+		node := &ast.Group{
+			Expr: $1,
+		}
+		$$ = node
+	}
+
+Groups:
+	Group
+	{
+		$$ = []ast.Group{*($1.(*ast.Group))}
+	}
+	| Groups COMMA Group
+	{
+		$$ = append($1, *($3.(*ast.Group)))
+	}
+
+GroupNode:
+	{
+		$$ = nil
+	}
+	| GROUP BY Groups
+	{
+		node := &ast.GroupNode{
+			Groups: $3,
+		}
+		$$ = node
+	}
+
+Order:
+	Expr
+	{
+		node := &ast.Order{
+			Expr: $1,
+		}
+		$$ = node
+	}
+	| Expr DESC
+	{
+		node := &ast.Order{
+			Expr: $1,
+			Order: 1,
+		}
+		$$ = node
+	}
+	| Expr ASC
+	{
+		node := &ast.Order{
+			Expr: $1,
+		}
+		$$ = node
+	}
+
+Orders:
+	Order
+	{
+		$$ = []ast.Order{*($1.(*ast.Order))}
+	}
+	| Orders COMMA Order
+	{
+		$$ = append($1, *($3.(*ast.Order)))
+	}
+
+OrderNode:
+	{
+		$$ = nil
+	}
+	| ORDER BY Orders
+	{
+		node := &ast.OrderNode{
+			Orders: $3,
+		}
+		$$ = node
+	}
+
+// select id, age, name from t_user where id=1 group by id having id=1 order by id desc
 SelectStatement:
 	SELECT FieldNode
 	{
@@ -257,21 +346,14 @@ SelectStatement:
 		$$ = stmt
 		(yylex.(*Lexer)).Root = $$
 	}
-	| SELECT FieldNode FromNode
-	{
-		stmt := &ast.SelectStatement{
-			Fields: $2,
-			From: $3,
-		}
-		$$ = stmt
-		(yylex.(*Lexer)).Root = $$
-	}
-	| SELECT FieldNode FromNode WhereNode
+	| SELECT FieldNode FromNode WhereNode GroupNode OrderNode
 	{
 		stmt := &ast.SelectStatement{
 			Fields: $2,
 			From: $3,
 			Where: $4,
+			Group: $5,
+			Order: $6,
 		}
 		$$ = stmt
 		(yylex.(*Lexer)).Root = $$

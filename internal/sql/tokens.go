@@ -37,6 +37,11 @@ var tokenMap = map[string]int{
 	"AS":     AS,
 	"FROM":   FROM,
 	"WHERE":  WHERE,
+	"ORDER":  ORDER,
+	"GROUP":  GROUP,
+	"BY":     BY,
+	"DESC":   DESC,
+	"ASC":    ASC,
 }
 
 var logicalMap = map[string]int{

@@ -33,6 +33,10 @@ type yySymType struct {
 	conditions ast.TwoOpExprs
 	where      *ast.WhereNode
 	having     *ast.HavingNode
+	orders     *ast.OrderNode
+	groups     *ast.GroupNode
+	orderList  []ast.Order
+	groupList  []ast.Group
 }
 
 const LP = 57346
@@ -48,14 +52,17 @@ const FROM = 57355
 const WHERE = 57356
 const GROUP = 57357
 const ORDER = 57358
-const HAVING = 57359
-const LIMIT = 57360
-const OFFSET = 57361
-const IDENT = 57362
-const CSTRING = 57363
-const CINTEGER = 57364
-const CFLOAT = 57365
-const CBOOL = 57366
+const BY = 57359
+const HAVING = 57360
+const LIMIT = 57361
+const OFFSET = 57362
+const DESC = 57363
+const ASC = 57364
+const IDENT = 57365
+const CSTRING = 57366
+const CINTEGER = 57367
+const CFLOAT = 57368
+const CBOOL = 57369
 
 var yyToknames = [...]string{
 	"$end",
@@ -74,9 +81,12 @@ var yyToknames = [...]string{
 	"WHERE",
 	"GROUP",
 	"ORDER",
+	"BY",
 	"HAVING",
 	"LIMIT",
 	"OFFSET",
+	"DESC",
+	"ASC",
 	"IDENT",
 	"CSTRING",
 	"CINTEGER",
@@ -90,7 +100,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyInitialStackSize = 16
 
-//line ./internal/sql/parser.y:280
+//line ./internal/sql/parser.y:362
 
 //line yacctab:1
 var yyExca = [...]int{
@@ -101,56 +111,69 @@ var yyExca = [...]int{
 
 const yyPrivate = 57344
 
-const yyLast = 56
+const yyLast = 76
 
 var yyAct = [...]int{
-	24, 8, 25, 22, 23, 9, 28, 29, 30, 31,
-	33, 9, 21, 16, 13, 19, 20, 6, 11, 32,
-	9, 28, 29, 30, 31, 13, 9, 41, 26, 4,
-	14, 34, 7, 3, 39, 37, 35, 40, 43, 42,
-	17, 7, 18, 38, 34, 34, 38, 13, 12, 1,
-	2, 15, 10, 5, 27, 36,
+	27, 54, 26, 47, 24, 8, 25, 9, 30, 31,
+	32, 33, 38, 58, 59, 23, 9, 45, 6, 19,
+	20, 37, 36, 22, 16, 9, 30, 31, 32, 33,
+	9, 13, 13, 11, 4, 39, 34, 14, 48, 42,
+	44, 40, 51, 49, 50, 52, 55, 18, 39, 28,
+	43, 39, 13, 7, 3, 43, 57, 48, 55, 61,
+	60, 17, 7, 56, 12, 1, 2, 21, 46, 35,
+	53, 15, 10, 5, 29, 41,
 }
 
 var yyPact = [...]int{
-	23, -1000, -1000, 6, 5, 42, -1000, 18, -1000, -1000,
-	-1, -9, 6, -9, -9, -1000, 0, 7, -1000, -1000,
-	-1000, 36, -1000, 0, 35, -1000, 40, -1000, -1000, -1000,
-	-1000, -1000, -9, -15, -1000, 22, -15, -15, -1000, -1000,
-	-1000, -1000, -1000, 38,
+	44, -1000, -1000, 7, 20, 58, -1000, 25, -1000, -1000,
+	10, -7, 7, -7, -7, 8, 2, 24, -1000, -1000,
+	-1000, 6, 4, 26, -1000, 2, 42, -1000, 45, -1000,
+	-1000, -1000, -1000, -1000, -7, -1000, 0, -16, -16, -1000,
+	39, -16, -16, -1000, -1000, -16, 57, -1000, -1000, -1000,
+	-1000, -1000, 47, 50, -1000, -8, -16, -16, -1000, -1000,
+	-1000, -1000,
 }
 
 var yyPgo = [...]int{
-	0, 10, 55, 2, 0, 12, 54, 1, 28, 53,
-	3, 29, 52, 51, 50, 49,
+	0, 12, 75, 0, 2, 15, 74, 5, 49, 73,
+	1, 3, 4, 34, 72, 71, 70, 69, 68, 67,
+	66, 65,
 }
 
 var yyR1 = [...]int{
-	0, 15, 1, 2, 7, 6, 6, 6, 6, 8,
-	8, 9, 9, 9, 11, 11, 12, 12, 3, 3,
-	4, 4, 10, 5, 5, 5, 13, 14, 14, 14,
+	0, 21, 1, 2, 7, 6, 6, 6, 6, 8,
+	8, 9, 9, 9, 13, 13, 14, 14, 3, 3,
+	4, 4, 12, 5, 5, 5, 15, 15, 11, 18,
+	18, 19, 19, 10, 10, 10, 16, 16, 17, 17,
+	20, 20,
 }
 
 var yyR2 = [...]int{
 	0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	3, 1, 1, 3, 1, 3, 2, 4, 1, 1,
-	1, 3, 3, 1, 3, 3, 2, 2, 3, 4,
+	1, 3, 3, 1, 3, 3, 0, 2, 1, 1,
+	3, 0, 3, 1, 2, 2, 1, 3, 0, 3,
+	2, 6,
 }
 
 var yyChk = [...]int{
-	-1000, -15, -14, 10, -11, -9, 11, -8, -7, 20,
-	-12, 13, 6, 7, 12, -13, 14, -8, -11, -7,
-	-7, -5, -10, 4, -4, -3, -8, -6, 21, 22,
-	23, 24, 12, -1, 9, -5, -2, -1, 8, -7,
-	-10, 5, -3, -4,
+	-1000, -21, -20, 10, -13, -9, 11, -8, -7, 23,
+	-14, 13, 6, 7, 12, -15, 14, -8, -13, -7,
+	-7, -19, 15, -5, -12, 4, -4, -3, -8, -6,
+	24, 25, 26, 27, 12, -17, 16, 17, -1, 9,
+	-5, -2, -1, 8, -7, 17, -18, -11, -3, -12,
+	5, -3, -4, -16, -10, -3, 6, 6, 21, 22,
+	-11, -10,
 }
 
 var yyDef = [...]int{
-	0, -2, 1, 0, 27, 14, 11, 12, 9, 4,
-	28, 0, 0, 0, 0, 29, 0, 16, 15, 10,
-	13, 26, 23, 0, 0, 20, 18, 19, 5, 6,
-	7, 8, 0, 0, 2, 0, 0, 0, 3, 17,
-	25, 24, 21, 22,
+	0, -2, 1, 0, 40, 14, 11, 12, 9, 4,
+	26, 0, 0, 0, 0, 31, 0, 16, 15, 10,
+	13, 38, 0, 27, 23, 0, 0, 20, 18, 19,
+	5, 6, 7, 8, 0, 41, 0, 0, 0, 2,
+	0, 0, 0, 3, 17, 0, 32, 29, 28, 25,
+	24, 21, 22, 39, 36, 33, 0, 0, 34, 35,
+	30, 37,
 }
 
 var yyTok1 = [...]int{
@@ -160,7 +183,7 @@ var yyTok1 = [...]int{
 var yyTok2 = [...]int{
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 	12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-	22, 23, 24,
+	22, 23, 24, 25, 26, 27,
 }
 
 var yyTok3 = [...]int{
@@ -506,19 +529,19 @@ yydefault:
 
 	case 2:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:66
+//line ./internal/sql/parser.y:74
 		{
 			yyVAL.logical = yyDollar[1].logical
 		}
 	case 3:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:72
+//line ./internal/sql/parser.y:80
 		{
 			yyVAL.operator = yyDollar[1].operator
 		}
 	case 4:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:78
+//line ./internal/sql/parser.y:86
 		{
 			node := &ast.Ident{}
 			node.SetVal(yyDollar[1].string)
@@ -526,7 +549,7 @@ yydefault:
 		}
 	case 5:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:86
+//line ./internal/sql/parser.y:94
 		{
 			node := &ast.ConstExpr{
 				Val: yyDollar[1].string,
@@ -535,7 +558,7 @@ yydefault:
 		}
 	case 6:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:93
+//line ./internal/sql/parser.y:101
 		{
 			node := &ast.ConstExpr{
 				Val: yyDollar[1].int64,
@@ -544,7 +567,7 @@ yydefault:
 		}
 	case 7:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:100
+//line ./internal/sql/parser.y:108
 		{
 			node := &ast.ConstExpr{
 				Val: yyDollar[1].float64,
@@ -553,7 +576,7 @@ yydefault:
 		}
 	case 8:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:107
+//line ./internal/sql/parser.y:115
 		{
 			node := &ast.ConstExpr{
 				Val: yyDollar[1].bool,
@@ -562,7 +585,7 @@ yydefault:
 		}
 	case 9:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:116
+//line ./internal/sql/parser.y:124
 		{
 			node := &ast.SelectorExpr{
 				X: yyDollar[1].ident,
@@ -571,7 +594,7 @@ yydefault:
 		}
 	case 10:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line ./internal/sql/parser.y:123
+//line ./internal/sql/parser.y:131
 		{
 			node := &ast.SelectorExpr{
 				Sel: yyDollar[1].selector,
@@ -581,7 +604,7 @@ yydefault:
 		}
 	case 11:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:133
+//line ./internal/sql/parser.y:141
 		{
 			node := &ast.Field{
 				All: true,
@@ -590,7 +613,7 @@ yydefault:
 		}
 	case 12:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:140
+//line ./internal/sql/parser.y:148
 		{
 			node := &ast.Field{
 				Name: yyDollar[1].selector,
@@ -599,7 +622,7 @@ yydefault:
 		}
 	case 13:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line ./internal/sql/parser.y:147
+//line ./internal/sql/parser.y:155
 		{
 			node := &ast.Field{
 				Name:  yyDollar[1].selector,
@@ -609,7 +632,7 @@ yydefault:
 		}
 	case 14:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:157
+//line ./internal/sql/parser.y:165
 		{
 			node := ast.FieldsNode{}
 			node.Fields = append(node.Fields, *(yyDollar[1].node.(*ast.Field)))
@@ -617,13 +640,13 @@ yydefault:
 		}
 	case 15:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line ./internal/sql/parser.y:163
+//line ./internal/sql/parser.y:171
 		{
 			yyVAL.fields.Fields = append(yyDollar[3].fields.Fields, *(yyDollar[1].node.(*ast.Field)))
 		}
 	case 16:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line ./internal/sql/parser.y:169
+//line ./internal/sql/parser.y:177
 		{
 			node := &ast.FromNode{
 				Name: yyDollar[2].selector,
@@ -632,7 +655,7 @@ yydefault:
 		}
 	case 17:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line ./internal/sql/parser.y:176
+//line ./internal/sql/parser.y:184
 		{
 			node := &ast.FromNode{
 				Name:  yyDollar[2].selector,
@@ -642,25 +665,25 @@ yydefault:
 		}
 	case 18:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:186
+//line ./internal/sql/parser.y:194
 		{
 			yyVAL.expr = yyDollar[1].selector
 		}
 	case 19:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:190
+//line ./internal/sql/parser.y:198
 		{
 			yyVAL.expr = yyDollar[1].expr
 		}
 	case 20:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:196
+//line ./internal/sql/parser.y:204
 		{
 			yyVAL.expr = yyDollar[1].expr
 		}
 	case 21:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line ./internal/sql/parser.y:200
+//line ./internal/sql/parser.y:208
 		{
 			node := &ast.TwoOpExpr{
 				Left:  yyDollar[1].expr,
@@ -671,7 +694,7 @@ yydefault:
 		}
 	case 22:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line ./internal/sql/parser.y:211
+//line ./internal/sql/parser.y:219
 		{
 			node := &ast.TwoOpExpr{
 				Left:  yyDollar[1].expr,
@@ -682,13 +705,13 @@ yydefault:
 		}
 	case 23:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line ./internal/sql/parser.y:222
+//line ./internal/sql/parser.y:230
 		{
 			yyVAL.expr = yyDollar[1].twoOpExpr
 		}
 	case 24:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line ./internal/sql/parser.y:226
+//line ./internal/sql/parser.y:234
 		{
 			node := &ast.PrecedenceExpr{
 				Val: yyDollar[2].expr,
@@ -697,7 +720,7 @@ yydefault:
 		}
 	case 25:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line ./internal/sql/parser.y:233
+//line ./internal/sql/parser.y:241
 		{
 			node := &ast.TwoOpExpr{
 				Left:  yyDollar[1].expr,
@@ -707,43 +730,131 @@ yydefault:
 			yyVAL.expr = node
 		}
 	case 26:
+		yyDollar = yyS[yypt-0 : yypt+1]
+//line ./internal/sql/parser.y:251
+		{
+			yyVAL.where = nil
+		}
+	case 27:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line ./internal/sql/parser.y:244
+//line ./internal/sql/parser.y:255
 		{
 			node := &ast.WhereNode{
 				Conditions: yyDollar[2].expr,
 			}
 			yyVAL.where = node
 		}
-	case 27:
-		yyDollar = yyS[yypt-2 : yypt+1]
-//line ./internal/sql/parser.y:253
-		{
-			stmt := &ast.SelectStatement{
-				Fields: yyDollar[2].fields,
-			}
-			yyVAL.stmt = stmt
-			(yylex.(*Lexer)).Root = yyVAL.stmt
-		}
 	case 28:
-		yyDollar = yyS[yypt-3 : yypt+1]
-//line ./internal/sql/parser.y:261
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line ./internal/sql/parser.y:264
 		{
-			stmt := &ast.SelectStatement{
-				Fields: yyDollar[2].fields,
-				From:   yyDollar[3].from,
+			node := &ast.Group{
+				Expr: yyDollar[1].expr,
 			}
-			yyVAL.stmt = stmt
-			(yylex.(*Lexer)).Root = yyVAL.stmt
+			yyVAL.node = node
 		}
 	case 29:
-		yyDollar = yyS[yypt-4 : yypt+1]
-//line ./internal/sql/parser.y:270
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line ./internal/sql/parser.y:273
+		{
+			yyVAL.groupList = []ast.Group{*(yyDollar[1].node.(*ast.Group))}
+		}
+	case 30:
+		yyDollar = yyS[yypt-3 : yypt+1]
+//line ./internal/sql/parser.y:277
+		{
+			yyVAL.groupList = append(yyDollar[1].groupList, *(yyDollar[3].node.(*ast.Group)))
+		}
+	case 31:
+		yyDollar = yyS[yypt-0 : yypt+1]
+//line ./internal/sql/parser.y:282
+		{
+			yyVAL.groups = nil
+		}
+	case 32:
+		yyDollar = yyS[yypt-3 : yypt+1]
+//line ./internal/sql/parser.y:286
+		{
+			node := &ast.GroupNode{
+				Groups: yyDollar[3].groupList,
+			}
+			yyVAL.groups = node
+		}
+	case 33:
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line ./internal/sql/parser.y:295
+		{
+			node := &ast.Order{
+				Expr: yyDollar[1].expr,
+			}
+			yyVAL.node = node
+		}
+	case 34:
+		yyDollar = yyS[yypt-2 : yypt+1]
+//line ./internal/sql/parser.y:302
+		{
+			node := &ast.Order{
+				Expr:  yyDollar[1].expr,
+				Order: 1,
+			}
+			yyVAL.node = node
+		}
+	case 35:
+		yyDollar = yyS[yypt-2 : yypt+1]
+//line ./internal/sql/parser.y:310
+		{
+			node := &ast.Order{
+				Expr: yyDollar[1].expr,
+			}
+			yyVAL.node = node
+		}
+	case 36:
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line ./internal/sql/parser.y:319
+		{
+			yyVAL.orderList = []ast.Order{*(yyDollar[1].node.(*ast.Order))}
+		}
+	case 37:
+		yyDollar = yyS[yypt-3 : yypt+1]
+//line ./internal/sql/parser.y:323
+		{
+			yyVAL.orderList = append(yyDollar[1].orderList, *(yyDollar[3].node.(*ast.Order)))
+		}
+	case 38:
+		yyDollar = yyS[yypt-0 : yypt+1]
+//line ./internal/sql/parser.y:328
+		{
+			yyVAL.orders = nil
+		}
+	case 39:
+		yyDollar = yyS[yypt-3 : yypt+1]
+//line ./internal/sql/parser.y:332
+		{
+			node := &ast.OrderNode{
+				Orders: yyDollar[3].orderList,
+			}
+			yyVAL.orders = node
+		}
+	case 40:
+		yyDollar = yyS[yypt-2 : yypt+1]
+//line ./internal/sql/parser.y:342
+		{
+			stmt := &ast.SelectStatement{
+				Fields: yyDollar[2].fields,
+			}
+			yyVAL.stmt = stmt
+			(yylex.(*Lexer)).Root = yyVAL.stmt
+		}
+	case 41:
+		yyDollar = yyS[yypt-6 : yypt+1]
+//line ./internal/sql/parser.y:350
 		{
 			stmt := &ast.SelectStatement{
 				Fields: yyDollar[2].fields,
 				From:   yyDollar[3].from,
 				Where:  yyDollar[4].where,
+				Group:  yyDollar[5].groups,
+				Order:  yyDollar[6].orders,
 			}
 			yyVAL.stmt = stmt
 			(yylex.(*Lexer)).Root = yyVAL.stmt

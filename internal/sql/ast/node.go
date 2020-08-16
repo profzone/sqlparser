@@ -104,7 +104,6 @@ func (w *HavingNode) Visit(visitor Visitor) bool {
 }
 
 type Order struct {
-	Name  *SelectorExpr
 	Expr  Expr // TODO
 	Order int
 }
@@ -114,9 +113,6 @@ func (o *Order) Visit(visitor Visitor) bool {
 		return visitor.Leave(o)
 	}
 
-	if o.Name != nil && !o.Name.Visit(visitor) {
-		return false
-	}
 	if o.Expr != nil && !o.Expr.Visit(visitor) {
 		return false
 	}
@@ -143,8 +139,7 @@ func (o *OrderNode) Visit(visitor Visitor) bool {
 }
 
 type Group struct {
-	Name *SelectorExpr
-	Expr Expr // TODO
+	Expr Expr
 }
 
 func (g *Group) Visit(visitor Visitor) bool {
@@ -152,9 +147,6 @@ func (g *Group) Visit(visitor Visitor) bool {
 		return visitor.Leave(g)
 	}
 
-	if g.Name != nil && !g.Name.Visit(visitor) {
-		return false
-	}
 	if g.Expr != nil && !g.Expr.Visit(visitor) {
 		return false
 	}

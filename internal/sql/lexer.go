@@ -29,7 +29,7 @@ func (l *Lexer) Lex(lval *yySymType) int {
 		}
 		// if is logical
 		if t, ok := logicalMap[strings.ToUpper(lit)]; ok {
-			lval.logical = lit
+			lval.logical = strings.ToUpper(lit)
 			return t
 		}
 		// if is integer constant
