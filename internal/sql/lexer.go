@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"github.com/profzone/sqlparser/internal/common"
 	"github.com/profzone/sqlparser/internal/sql/ast"
 	"github.com/profzone/sqlparser/pkg/lexer"
 	"strconv"
@@ -45,8 +46,8 @@ func (l *Lexer) Lex(lval *yySymType) int {
 			return CFLOAT
 		}
 		// if is bool constant
-		b, err := strconv.ParseBool(lit)
-		if err == nil {
+		b, ok := common.IsBool(lit)
+		if ok {
 			lval.bool = b
 			return CBOOL
 		}

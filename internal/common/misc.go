@@ -19,3 +19,13 @@ func IsIdentExtend(ch rune) bool {
 func IsUserVarChar(ch rune) bool {
 	return IsLetter(ch) || IsDigit(ch) || ch == '_' || ch == '$' || ch == '.' || IsIdentExtend(ch)
 }
+
+func IsBool(b string) (bool, bool) {
+	switch b {
+	case "true", "TRUE", "True":
+		return true, true
+	case "false", "FALSE", "False":
+		return false, true
+	}
+	return false, false
+}

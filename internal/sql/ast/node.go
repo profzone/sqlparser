@@ -1,10 +1,8 @@
 package ast
 
 type Field struct {
-	Name  Expr
-	Func  Expr // TODO
+	Expr  Expr
 	Alias Expr
-	Val   *ConstExpr // TODO
 	All   bool
 }
 
@@ -13,16 +11,10 @@ func (f *Field) Visit(visitor Visitor) bool {
 		return visitor.Leave(f)
 	}
 
-	if f.Name != nil && !f.Name.Visit(visitor) {
-		return false
-	}
-	if f.Func != nil && !f.Func.Visit(visitor) {
+	if f.Expr != nil && !f.Expr.Visit(visitor) {
 		return false
 	}
 	if f.Alias != nil && !f.Alias.Visit(visitor) {
-		return false
-	}
-	if f.Val != nil && !f.Val.Visit(visitor) {
 		return false
 	}
 
@@ -48,9 +40,8 @@ func (f FieldsNode) Visit(visitor Visitor) bool {
 }
 
 type FromNode struct {
-	Name         *SelectorExpr
-	SubStatement Statement
-	Alias        Expr
+	Expr  Expr
+	Alias Expr
 }
 
 func (f *FromNode) Visit(visitor Visitor) bool {
@@ -58,10 +49,7 @@ func (f *FromNode) Visit(visitor Visitor) bool {
 		return visitor.Leave(f)
 	}
 
-	if f.Name != nil && !f.Name.Visit(visitor) {
-		return false
-	}
-	if f.SubStatement != nil && !f.SubStatement.Visit(visitor) {
+	if f.Expr != nil && !f.Expr.Visit(visitor) {
 		return false
 	}
 	if f.Alias != nil && !f.Alias.Visit(visitor) {

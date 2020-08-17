@@ -3,7 +3,7 @@ package ast
 import "fmt"
 
 type Statement interface {
-	Node
+	Expr
 	fmt.Stringer
 }
 
@@ -15,6 +15,14 @@ type SelectStatement struct {
 	Order  *OrderNode
 	Having *HavingNode
 	Limit  *LimitNode
+}
+
+func (s *SelectStatement) GetVal() interface{} {
+	return nil
+}
+
+func (s *SelectStatement) SetVal(i interface{}) error {
+	return nil
 }
 
 func (s *SelectStatement) Visit(visitor Visitor) bool {

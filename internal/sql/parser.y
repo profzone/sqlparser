@@ -88,6 +88,12 @@ Ident:
 		node.SetVal($1)
 		$$ = node
 	}
+	| '`' IDENT '`'
+	{
+		node := &ast.Ident{}
+		node.SetVal($2)
+		$$ = node
+	}
 
 Const:
 	CSTRING
@@ -147,14 +153,14 @@ Field:
 	| Selector
 	{
 		node := &ast.Field{
-			Name: $1,
+			Expr: $1,
 		}
 		$$ = node
 	}
 	| Selector AS Ident
 	{
 		node := &ast.Field{
-			Name: $1,
+			Expr: $1,
 			Alias: $3,
 		}
 		$$ = node
@@ -176,14 +182,14 @@ FromNode:
 	FROM Selector
 	{
 		node := &ast.FromNode{
-			Name: $2,
+			Expr: $2,
 		}
 		$$ = node
 	}
 	| FROM Selector AS Ident
 	{
 		node := &ast.FromNode{
-			Name: $2,
+			Expr: $2,
 			Alias: $4,
 		}
 		$$ = node

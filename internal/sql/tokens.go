@@ -19,6 +19,7 @@ func init() {
 	lexer.RegisterToken('.', DOT)
 	lexer.RegisterToken(',', COMMA)
 	lexer.RegisterToken('*', STAR) // TODO
+	lexer.RegisterToken('`', int('`'))
 
 	lexer.RegisterTokenStr(">", LOGICAL)
 	lexer.RegisterTokenStr(">=", LOGICAL)
