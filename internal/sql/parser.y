@@ -150,14 +150,22 @@ Field:
 		}
 		$$ = node
 	}
-	| Selector
+	| Selector DOT STAR
+	{
+		node := &ast.Field{
+			Expr: $1,
+			All: true,
+		}
+		$$ = node
+	}
+	| Exprs
 	{
 		node := &ast.Field{
 			Expr: $1,
 		}
 		$$ = node
 	}
-	| Selector AS Ident
+	| Exprs AS Ident
 	{
 		node := &ast.Field{
 			Expr: $1,
@@ -179,7 +187,10 @@ FieldNode:
 	}
 
 FromNode:
-	FROM Selector
+	{
+		$$ = nil
+	}
+	| FROM Selector
 	{
 		node := &ast.FromNode{
 			Expr: $2,
@@ -191,6 +202,21 @@ FromNode:
 		node := &ast.FromNode{
 			Expr: $2,
 			Alias: $4,
+		}
+		$$ = node
+	}
+	| FROM LP SelectStatement RP
+	{
+		node := &ast.FromNode{
+			Expr: $3,
+		}
+		$$ = node
+	}
+	| FROM LP SelectStatement RP AS Ident
+	{
+		node := &ast.FromNode{
+			Expr: $3,
+			Alias: $6,
 		}
 		$$ = node
 	}
@@ -216,6 +242,22 @@ Exprs:
 			Left: $1,
 			Op: $2,
 			Right: $3,
+		}
+		$$ = node
+	}
+	| Exprs STAR Expr
+	{
+		node := &ast.TwoOpExpr{
+			Left: $1,
+			Op: "*",
+			Right: $3,
+		}
+		$$ = node
+	}
+	| LP Exprs RP
+	{
+		node := &ast.PrecedenceExpr{
+			Val: $2,
 		}
 		$$ = node
 	}
@@ -344,15 +386,7 @@ OrderNode:
 
 // select id, age, name from t_user where id=1 group by id having id=1 order by id desc
 SelectStatement:
-	SELECT FieldNode
-	{
-		stmt := &ast.SelectStatement{
-			Fields: $2,
-		}
-		$$ = stmt
-		(yylex.(*Lexer)).Root = $$
-	}
-	| SELECT FieldNode FromNode WhereNode GroupNode OrderNode
+	SELECT FieldNode FromNode WhereNode GroupNode OrderNode
 	{
 		stmt := &ast.SelectStatement{
 			Fields: $2,

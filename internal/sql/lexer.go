@@ -10,8 +10,10 @@ import (
 
 type Lexer struct {
 	*lexer.Scanner
-	Root ast.Node
-	errs []string
+	Root     ast.Node
+	lastWord string
+	lastTok  int
+	errs     []string
 }
 
 func NewLexer(code string) *Lexer {
@@ -31,25 +33,25 @@ func (l *Lexer) Lex(lval *yySymType) int {
 		// if is logical
 		if t, ok := logicalMap[strings.ToUpper(lit)]; ok {
 			lval.logical = strings.ToUpper(lit)
-			return t
+			tok = t
 		}
 		// if is integer constant
 		i, err := strconv.ParseInt(lit, 10, 64)
 		if err == nil {
 			lval.int64 = i
-			return CINTEGER
+			tok = CINTEGER
 		}
 		// if is float constant
 		f, err := strconv.ParseFloat(lit, 64)
 		if err == nil {
 			lval.float64 = f
-			return CFLOAT
+			tok = CFLOAT
 		}
 		// if is bool constant
 		b, ok := common.IsBool(lit)
 		if ok {
 			lval.bool = b
-			return CBOOL
+			tok = CBOOL
 		}
 		lval.string = lit
 	case CSTRING:
@@ -59,6 +61,9 @@ func (l *Lexer) Lex(lval *yySymType) int {
 	case OPERATOR:
 		lval.operator = lit
 	}
+
+	l.lastTok = tok
+	l.lastWord = lit
 
 	return tok
 }

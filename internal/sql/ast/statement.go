@@ -33,7 +33,7 @@ func (s *SelectStatement) Visit(visitor Visitor) bool {
 	if !s.Fields.Visit(visitor) {
 		return false
 	}
-	if !s.From.Visit(visitor) {
+	if s.From != nil && !s.From.Visit(visitor) {
 		return false
 	}
 	if s.Where != nil && !s.Where.Visit(visitor) {

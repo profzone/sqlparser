@@ -11,14 +11,13 @@ func init() {
 
 	lexer.RegisterToken('+', OPERATOR)
 	lexer.RegisterToken('-', OPERATOR)
-	lexer.RegisterToken('*', OPERATOR) // TODO
 	lexer.RegisterToken('/', OPERATOR)
 	lexer.RegisterToken('%', OPERATOR)
+	lexer.RegisterToken('*', STAR)
 	lexer.RegisterToken('(', LP)
 	lexer.RegisterToken(')', RP)
 	lexer.RegisterToken('.', DOT)
 	lexer.RegisterToken(',', COMMA)
-	lexer.RegisterToken('*', STAR) // TODO
 	lexer.RegisterToken('`', int('`'))
 
 	lexer.RegisterTokenStr(">", LOGICAL)
